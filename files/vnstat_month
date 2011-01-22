@@ -1,0 +1,60 @@
+#! /bin/bash
+#
+# Simple munin plugin to get total traffic transferred on all network interfaces.
+# Uses vnStat to keep track of the traffic.
+#
+# author:	wandrer (wandrer@gmail.com)
+# site:		http://roguenoise.org/munin_plugin_vnstat
+#
+# If the plugin is run as root it will update the vnStat database before getting
+# the stats.
+#
+
+
+# Config section
+if [ "$1" = "config" ]; then
+
+	echo 'graph_title Monthly Traffic'
+	echo 'graph_args --base 1000 --lower-limit 0'
+	echo 'graph_vlabel Traffic'
+	echo 'graph_category network'
+	echo 'graph_info Monthly network traffic in bytes.'
+	echo 'monthtx.label Sent'
+	echo 'monthtx.info Monthly data sent.'
+	echo 'monthtx.cdef monthtx,1000000,*'
+	echo 'monthrx.label Received'
+	echo 'monthrx.info Total data received.'
+	echo 'monthrx.cdef monthrx,1000000,*'
+	exit 0
+	
+fi;
+
+
+# The Script
+
+# Running as root?
+if [ `whoami` = "root" ]; then
+	`vnstat -u`
+fi;
+
+# Grabs the totals from the database.
+MONTHSRX=`vnstat --dumpdb | grep 'm;0;' | cut -d';' -f4`
+MONTHSTX=`vnstat --dumpdb | grep 'm;0;' | cut -d';' -f5`
+
+MONTHSRXMB=0
+MONTHSTXMB=0
+
+for MONTHRX in $MONTHSRX
+do
+	let 'MONTHSRXMB += MONTHRX'
+done
+
+for MONTHTX in $MONTHSTX
+do
+	let 'MONTHSTXMB += MONTHTX'
+done
+
+echo 'monthrx.value' $MONTHSRXMB
+echo 'monthtx.value' $MONTHSTXMB
+
+exit 0

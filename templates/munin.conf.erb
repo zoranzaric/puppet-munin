@@ -1,0 +1,10 @@
+dbdir   /var/lib/munin
+htmldir /var/www/<%= domain %>/<%= vhost %>/htdocs/
+logdir  /var/log/munin
+rundir  /var/run/munin
+tmpldir /etc/munin/templates
+
+includedir /etc/munin/conf.d/
+
+graph_period minute
+max_graph_jobs 15

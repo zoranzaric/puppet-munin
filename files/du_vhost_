@@ -1,0 +1,35 @@
+#! /bin/bash
+#
+# Simple munin plugin to get total traffic transferred on all network interfaces.
+# Uses vnStat to keep track of the traffic.
+#
+# author:	wandrer (wandrer@gmail.com)
+# site:		http://roguenoise.org/munin_plugin_vnstat
+#
+# If the plugin is run as root it will update the vnStat database before getting
+# the stats.
+#
+
+DOMAIN=`basename $0 | sed 's/^du_domain_//g'`
+
+
+# Config section
+if [ "$1" = "config" ]; then
+
+	echo "graph_title Diskspace used by $DOMAIN"
+	echo 'graph_args --base 1000 --lower-limit 0'
+	echo 'graph_vlabel Space'
+	echo 'graph_category Disk'
+	echo "graph_info Diskspace used by $DOMAIN."
+	echo 'du.label Used Space'
+	echo "du.info Diskspace used by $DOMAIN."
+	echo 'du.cdef du,1000000,*'
+	exit 0
+	
+fi;
+
+
+# The Script
+
+echo 'du.value' `du -s /var/www/$DOMAIN/ | cut -d'	' -f1`
+exit 0

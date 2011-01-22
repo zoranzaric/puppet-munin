@@ -1,0 +1,60 @@
+#! /bin/bash
+#
+# Simple munin plugin to get total traffic transferred on all network interfaces.
+# Uses vnStat to keep track of the traffic.
+#
+# author:	wandrer (wandrer@gmail.com)
+# site:		http://roguenoise.org/munin_plugin_vnstat
+#
+# If the plugin is run as root it will update the vnStat database before getting
+# the stats.
+#
+
+
+# Config section
+if [ "$1" = "config" ]; then
+
+	echo 'graph_title Daily Traffic'
+	echo 'graph_args --base 1000 --lower-limit 0'
+	echo 'graph_vlabel Traffic'
+	echo 'graph_category network'
+	echo 'graph_info Daily network traffic in bytes.'
+	echo 'daytx.label Sent'
+	echo 'daytx.info Daily data sent.'
+	echo 'daytx.cdef daytx,1000000,*'
+	echo 'dayrx.label Received'
+	echo 'dayrx.info Total data received.'
+	echo 'dayrx.cdef dayrx,1000000,*'
+	exit 0
+	
+fi;
+
+
+# The Script
+
+# Running as root?
+if [ `whoami` = "root" ]; then
+	`vnstat -u`
+fi;
+
+# Grabs the totals from the database.
+DAYSRX=`vnstat --dumpdb | grep 'd;0;' | cut -d';' -f4`
+DAYSTX=`vnstat --dumpdb | grep 'd;0;' | cut -d';' -f5`
+
+DAYSRXMB=0
+DAYSTXMB=0
+
+for DAYRX in $DAYSRX
+do
+	let 'DAYSRXMB += DAYRX'
+done
+
+for DAYTX in $DAYSTX
+do
+	let 'DAYSTXMB += DAYTX'
+done
+
+echo 'dayrx.value' $DAYSRXMB
+echo 'daytx.value' $DAYSTXMB
+
+exit 0
